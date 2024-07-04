@@ -1,6 +1,7 @@
 package pinting.backend.config;
 
 import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,12 +10,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import pinting.backend.common.oauth2.handler.CustomSuccessHandler;
 import pinting.backend.common.oauth2.jwt.JWTFilter;
 import pinting.backend.common.oauth2.jwt.JWTUtil;
 import pinting.backend.repository.oauth2.JpaUserRepository;
 import pinting.backend.repository.oauth2.UserRepository;
 import pinting.backend.service.oauth2.CustomOAuth2UserService;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -68,6 +73,27 @@ public class SecurityConfig {
 		http
 				.sessionManagement((session) -> session
 						.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+		http
+				.cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
+
+					@Override
+					public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+
+						CorsConfiguration configuration = new CorsConfiguration();
+
+						configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+						configuration.setAllowedMethods(Collections.singletonList("*"));
+						configuration.setAllowCredentials(true);
+						configuration.setAllowedHeaders(Collections.singletonList("*"));
+						configuration.setMaxAge(3600L);
+
+						configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
+						configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+
+						return configuration;
+					}
+				}));
 
 		return http.build();
 	}
